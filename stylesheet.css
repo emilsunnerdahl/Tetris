@@ -1,0 +1,31 @@
+body {
+  background-color: #989898;
+}
+
+#pause {
+  text-align: center;
+  font-size: 100px;
+  visibility: hidden;
+  background-color: red;
+  margin: 0;
+  padding: 0;
+}
+
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #484848;
+  width: 220px;
+  height: 440;
+  margin: 0 auto;
+  position: relative;
+  top: 150px;
+}
+
+.ruta {
+  background-color: #0c0d0e;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #484848;
+  border-radius: 3px;
+}
