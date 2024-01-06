@@ -1,18 +1,16 @@
 // Detta är mitt försök att fixa till v1 så att det funkar. Datum: 2024-01.
 
 // TODO: Visa kommande tre bitar
-// Fixa så att man inte kan gå igenom bitar i sidled
-// Fixa så man förlorar när det är fullt
+// TODO: Fixa så att man inte kan gå igenom bitar i sidled
+// TODO: Fixa så man förlorar när det är fullt
 
-var whichForm = 0;
-var upKeyUp = 0;
 var pause = false;
-
 var frameCounter = 0;
-var arrowLeft = 0;
-var arrowRight = 0;
-var arrowUp = 0;
-var arrowDown = 0;
+var arrowLeft = false;
+var arrowRight = false;
+var arrowUp = false;
+var arrowUpBlocker = false;
+var arrowDown = false;
 var spaceDown = false;
 
 class Piece {
@@ -43,7 +41,7 @@ class Piece {
         this.x[i] = this.x[i].map((j) => j - 1);
       }
     }
-    arrowLeft = 0;
+    arrowLeft = false;
   }
 
   moveRight() {
@@ -55,7 +53,7 @@ class Piece {
         this.x[i] = this.x[i].map((j) => j + 1);
       }
     }
-    arrowRight = 0;
+    arrowRight = false;
   }
 
   moveFast() {
@@ -67,7 +65,7 @@ class Piece {
         this.y[i] = this.y[i].map((j) => j + 1);
       }
     }
-    arrowDown = 0;
+    arrowDown = false;
   }
 
   decreaseYCoords() {
@@ -106,8 +104,8 @@ class Piece {
   }
 
   changeFacingDirection() {
-    if (arrowUp == 1) {
-      arrowUp = 0;
+    if (arrowUp) {
+      arrowUp = false;
       this.updateGameBoard(colors.black);
       this.facingDirection = (this.facingDirection + 1) % 4;
     }
@@ -203,7 +201,6 @@ class Game {
   }
 
   start() {
-    // To create the divs
     for (let i = 0; i < this.height; i++) {
       let arr = [];
       for (let j = 0; j < this.width; j++) {
@@ -237,19 +234,19 @@ class Game {
 window.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "ArrowLeft":
-      arrowLeft = 1;
+      arrowLeft = true;
       break;
     case "ArrowRight":
-      arrowRight = 1;
+      arrowRight = true;
       break;
     case "ArrowUp":
-      if (upKeyUp == 0) {
-        upKeyUp = 1;
-        arrowUp = 1;
+      if (!arrowUpBlocker) {
+        arrowUp = true;
+        arrowUpBlocker = true;
       }
       break;
     case "ArrowDown":
-      arrowDown = 1;
+      arrowDown = true;
       break;
     case " ":
       spaceDown = true;
@@ -264,10 +261,9 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
-  //added this eventListener to fix the continous fire of keyDown
   switch (event.key) {
     case "ArrowUp":
-      upKeyUp = 0;
+      arrowUpBlocker = false;
       break;
   }
 });
