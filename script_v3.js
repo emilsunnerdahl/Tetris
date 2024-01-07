@@ -14,21 +14,30 @@ var arrowDown = false;
 var spaceDown = false;
 
 class Piece {
-  constructor(name, color, x, y, game) {
+  constructor(name, color, xDirections, yDirections, game, offset) {
     this.name = name;
-    this.x = x;
-    this.y = y;
     this.facingDirection = 0;
+    this.xDirections = xDirections;
+    this.yDirections = yDirections;
+    this.x;
+    this.y;
     this.color = color;
     this.game = game;
+    this.offset = offset;
+
+    this.updateCoords();
+  }
+
+  updateCoords() {
+    this.x = [...this.xDirections[this.facingDirection]];
+    this.x = this.x.map((x) => x + this.offset[0]);
+    this.y = [...this.yDirections[this.facingDirection]];
+    this.y = this.y.map((y) => y + this.offset[1]);
   }
 
   updateGameBoard(color = this.color) {
-    let x = this.x[this.facingDirection];
-    let y = this.y[this.facingDirection];
-
     for (let i = 0; i < 4; i++) {
-      this.game.updateBoard(x[i], y[i], color);
+      this.game.updateBoard(this.x[i], this.y[i], color);
     }
   }
 
@@ -36,10 +45,11 @@ class Piece {
     if (!arrowLeft) {
       return;
     }
-    for (let i = 0; i < 4; i++) {
-      if (!this.x[i].some((j) => j == 0)) {
-        this.x[i] = this.x[i].map((j) => j - 1);
-      }
+    if (!this.x.some((x) => x == 0)) {
+      this.x = this.x.map((x) => x - 1);
+    }
+    if (this.offset[0] != 0) {
+      this.offset[0] = this.offset[0] - 1;
     }
     arrowLeft = false;
   }
@@ -48,10 +58,11 @@ class Piece {
     if (!arrowRight) {
       return;
     }
-    for (let i = 0; i < 4; i++) {
-      if (!this.x[i].some((j) => j == 9)) {
-        this.x[i] = this.x[i].map((j) => j + 1);
-      }
+    if (!this.x.some((x) => x == 9)) {
+      this.x = this.x.map((x) => x + 1);
+    }
+    if (this.offset[0] + this.xDirections[0][3] != 9) {
+      this.offset[0] = this.offset[0] + 1;
     }
     arrowRight = false;
   }
@@ -60,10 +71,14 @@ class Piece {
     if (!arrowDown || frameCounter % 2 != 0) {
       return;
     }
-    for (let i = 0; i < this.y.length; i++) {
-      if (this.y[i][3] != 19) {
-        this.y[i] = this.y[i].map((j) => j + 1);
-      }
+
+    if (this.y[3] != 19) {
+      this.y = this.y.map((y) => y + 1);
+    }
+    if (
+      !this.yDirections.some((arr) => arr.some((y) => y + this.offset[1] == 19))
+    ) {
+      this.offset[1] = this.offset[1] + 1;
     }
     arrowDown = false;
   }
@@ -72,10 +87,13 @@ class Piece {
     if (frameCounter < 30) {
       return;
     }
-    for (let i = 0; i < this.y.length; i++) {
-      if (this.y[i][3] != 19) {
-        this.y[i] = this.y[i].map((j) => j + 1);
-      }
+    if (this.y[3] != 19) {
+      this.y = this.y.map((y) => y + 1);
+    }
+    if (
+      !this.yDirections.some((arr) => arr.some((y) => y + this.offset[1] == 19))
+    ) {
+      this.offset[1] = this.offset[1] + 1;
     }
     frameCounter = 0;
   }
@@ -85,9 +103,8 @@ class Piece {
       return;
     }
     while (!this.stoppedMoving()) {
-      this.y[this.facingDirection] = this.y[this.facingDirection].map(
-        (y) => y + 1
-      );
+      this.y = this.y.map((y) => y + 1);
+      // this.offset[1] = this.offset[1] + 1;
     }
 
     spaceDown = false;
@@ -107,27 +124,26 @@ class Piece {
     if (arrowUp) {
       arrowUp = false;
       this.updateGameBoard(colors.black);
-      this.facingDirection = (this.facingDirection + 1) % 4;
+      this.facingDirection =
+        (this.facingDirection + 1) % this.xDirections.length;
+      this.updateCoords();
     }
   }
 
   stoppedMoving() {
-    let x = this.x[this.facingDirection];
-    let y = this.y[this.facingDirection];
-
-    if (y.some((y) => y == 19)) {
+    if (this.y[3] == 19) {
       return true;
     }
 
     let ownIds = [];
     for (let i = 0; i < 4; i++) {
-      ownIds.push(`r${x[i]}${y[i]}`);
+      ownIds.push(`r${this.x[i]}${this.y[i]}`);
     }
 
     for (let i = 0; i < 4; i++) {
-      let idUnder = `r${x[i]}${y[i] + 1}`;
+      let idUnder = `r${this.x[i]}${this.y[i] + 1}`;
       if (
-        this.game.getColor(x[i], y[i] + 1) != colors.black &&
+        this.game.getColor(this.x[i], this.y[i] + 1) != colors.black &&
         !ownIds.includes(idUnder)
       ) {
         return true;
@@ -165,6 +181,36 @@ class Game {
     }
   }
 
+  createDivs() {
+    for (let i = 0; i < this.height; i++) {
+      let arr = [];
+      for (let j = 0; j < this.width; j++) {
+        let div = document.createElement("div");
+        div.setAttribute("id", `r${j}${i}`);
+        div.setAttribute("class", "ruta");
+        div.style.backgroundColor = colors.black;
+        document.querySelector(".board").appendChild(div);
+        arr.push(colors.black);
+      }
+      this.board.push(arr);
+      this.blackArray = [...arr];
+    }
+  }
+
+  createNewPiece() {
+    let randomInt = Math.floor(Math.random() * 7);
+    let pieceObject = this.pieces[randomInt];
+    this.activePiece = new Piece(
+      pieceObject.name,
+      pieceObject.color,
+      [...pieceObject.x],
+      [...pieceObject.y],
+      this,
+      [...pieceObject.offset]
+    );
+    console.log(this.activePiece.name);
+  }
+
   draw() {
     for (let i = 0; i < this.height; i++) {
       for (let j = 0; j < this.width; j++) {
@@ -183,48 +229,16 @@ class Game {
 
     if (this.activePiece.stoppedMoving()) {
       this.removeFullColumn();
-
-      let randomInt = Math.floor(Math.random() * 7);
-      let pieceObject = this.pieces[randomInt];
-      this.activePiece = new Piece(
-        pieceObject.name,
-        pieceObject.color,
-        [...pieceObject.x],
-        [...pieceObject.y],
-        this
-      );
+      this.createNewPiece();
     }
 
     this.draw();
-
     frameCounter++;
   }
 
   start() {
-    for (let i = 0; i < this.height; i++) {
-      let arr = [];
-      for (let j = 0; j < this.width; j++) {
-        let div = document.createElement("div");
-        div.setAttribute("id", `r${j}${i}`);
-        div.setAttribute("class", "ruta");
-        div.style.backgroundColor = colors.black;
-        document.querySelector(".board").appendChild(div);
-        arr.push(colors.black);
-      }
-      this.board.push(arr);
-      this.blackArray = [...arr];
-    }
-
-    let randomInt = Math.floor(Math.random() * 7);
-    let pieceObject = this.pieces[randomInt];
-    this.activePiece = new Piece(
-      pieceObject.name,
-      pieceObject.color,
-      [...pieceObject.x],
-      [...pieceObject.y],
-      this
-    );
-    console.log(this.activePiece.name);
+    this.createDivs();
+    this.createNewPiece();
     let gameInterval = setInterval(() => {
       this.gameLoop();
     }, 1000 / this.fps);
@@ -280,27 +294,18 @@ const colors = {
 };
 
 const cube = {
-  x: [
-    [4, 5, 4, 5],
-    [4, 5, 4, 5],
-    [4, 5, 4, 5],
-    [4, 5, 4, 5],
-  ],
-  y: [
-    [0, 0, 1, 1],
-    [0, 0, 1, 1],
-    [0, 0, 1, 1],
-    [0, 0, 1, 1],
-  ],
+  x: [[0, 1, 0, 1]],
+  y: [[0, 0, 1, 1]],
   name: "cube",
   color: colors.yellow,
+  offset: [4, 0],
 };
 const long = {
   x: [
-    [3, 4, 5, 6],
-    [5, 5, 5, 5],
-    [3, 4, 5, 6],
-    [4, 4, 4, 4],
+    [0, 1, 2, 3],
+    [2, 2, 2, 2],
+    [0, 1, 2, 3],
+    [1, 1, 1, 1],
   ],
   y: [
     [1, 1, 1, 1],
@@ -310,13 +315,14 @@ const long = {
   ],
   name: "long",
   color: colors.lightBlue,
+  offset: [3, 0],
 };
 const sPiece = {
   x: [
-    [4, 5, 3, 4],
-    [4, 4, 5, 5],
-    [4, 5, 3, 4],
-    [3, 3, 4, 4],
+    [1, 2, 0, 1],
+    [1, 1, 2, 2],
+    [1, 2, 0, 1],
+    [0, 0, 1, 1],
   ],
   y: [
     [0, 0, 1, 1],
@@ -326,13 +332,14 @@ const sPiece = {
   ],
   name: "sPiece",
   color: colors.green,
+  offset: [3, 0],
 };
 const zPiece = {
   x: [
-    [3, 4, 4, 5],
-    [5, 5, 4, 4],
-    [3, 4, 4, 5],
-    [4, 4, 3, 3],
+    [0, 1, 1, 2],
+    [2, 2, 1, 1],
+    [0, 1, 1, 2],
+    [1, 1, 0, 0],
   ],
   y: [
     [0, 0, 1, 1],
@@ -342,13 +349,14 @@ const zPiece = {
   ],
   name: "zPiece",
   color: colors.red,
+  offset: [3, 0],
 };
 const lPiece = {
   x: [
-    [5, 3, 4, 5],
-    [4, 4, 4, 5],
-    [3, 4, 5, 3],
-    [3, 4, 4, 4],
+    [2, 0, 1, 2],
+    [1, 1, 1, 2],
+    [0, 1, 2, 0],
+    [0, 1, 1, 1],
   ],
   y: [
     [0, 1, 1, 1],
@@ -358,13 +366,14 @@ const lPiece = {
   ],
   name: "lPiece",
   color: colors.orange,
+  offset: [3, 0],
 };
 const lMirror = {
   x: [
-    [3, 3, 4, 5],
-    [4, 5, 4, 4],
-    [3, 4, 5, 5],
-    [4, 4, 4, 3],
+    [0, 0, 1, 2],
+    [1, 2, 1, 1],
+    [0, 1, 2, 2],
+    [1, 1, 1, 0],
   ],
   y: [
     [0, 1, 1, 1],
@@ -374,13 +383,14 @@ const lMirror = {
   ],
   name: "lMirror",
   color: colors.darkBlue,
+  offset: [3, 0],
 };
 const tPiece = {
   x: [
-    [4, 3, 4, 5],
-    [4, 4, 5, 4],
-    [3, 4, 5, 4],
-    [4, 3, 4, 4],
+    [1, 0, 1, 2],
+    [1, 1, 2, 1],
+    [0, 1, 2, 1],
+    [1, 0, 1, 1],
   ],
   y: [
     [0, 1, 1, 1],
@@ -390,6 +400,7 @@ const tPiece = {
   ],
   name: "tPiece",
   color: colors.purple,
+  offset: [3, 0],
 };
 
 const game = new Game(10, 20);

@@ -15,11 +15,11 @@ body {
   display: flex;
   flex-wrap: wrap;
   background-color: #484848;
-  width: 220px;
-  height: 440;
+  width: 216px;
+  height: 440px;
   margin: 0 auto;
   position: relative;
-  top: 150px;
+  top: 100px;
 }
 
 .ruta {
