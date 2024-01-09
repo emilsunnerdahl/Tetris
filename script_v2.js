@@ -1,3 +1,5 @@
+// This is my second version of tetris that I worked on later in 2020.
+
 // To create the divs
 for (let i = 20; i > 0; i--) {
   for (let j = 1; j < 11; j++) {

@@ -1,7 +1,4 @@
-// Detta är mitt försök att fixa till v1 så att det funkar. Datum: 2024-01.
-
-// TODO: Fixa så att man inte kan gå igenom bitar i sidled
-// TODO: Fixa så man förlorar när det är fullt
+// Finished version that I did in a few days after the exam in programming essentials. Date: 2024-01.
 
 var pause = false;
 var frameCounter = 0;
