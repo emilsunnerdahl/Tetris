@@ -162,11 +162,17 @@ class Game {
     this.width = width;
     this.height = height;
     this.fps = 60;
-    this.pieces = [cube, long, sPiece, zPiece, lPiece, lMirror, tPiece];
+    this.pieces;
     this.board = [];
     this.blackArray;
     this.nextPieces = [];
     this.gameOver = false;
+
+    this.resetPieces();
+  }
+
+  resetPieces() {
+    this.pieces = [cube, long, sPiece, zPiece, lPiece, lMirror, tPiece];
   }
 
   updateBoard(x, y, color) {
@@ -213,21 +219,27 @@ class Game {
     }
   }
 
-  createNextPieces() {
-    let randomInt;
-    let pieceObject;
+  randomPiece() {
+    if (this.pieces.length == 0) {
+      this.resetPieces();
+    }
 
+    let randomInt = Math.floor(Math.random() * this.pieces.length);
+    let pieceObject = this.pieces[randomInt];
+    this.pieces = this.pieces
+      .slice(0, randomInt)
+      .concat(this.pieces.slice(randomInt + 1));
+    this.nextPieces.push(pieceObject);
+  }
+
+  createNextPieces() {
     for (let i = 0; i < 3; i++) {
-      randomInt = Math.floor(Math.random() * 7);
-      pieceObject = this.pieces[randomInt];
-      this.nextPieces.push(pieceObject);
+      this.randomPiece();
     }
   }
 
   createNewPiece() {
-    let randomInt = Math.floor(Math.random() * 7);
-    let pieceObject = this.pieces[randomInt];
-    this.nextPieces.push(pieceObject);
+    this.randomPiece();
 
     let nextPiece = this.nextPieces.shift();
     this.activePiece = new Piece(
